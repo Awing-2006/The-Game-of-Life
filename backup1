@@ -1,0 +1,129 @@
+import pygame
+
+pygame.init()                                                                                   # initiate pygame
+width, height = 1300, 700                                                                       # set width and height of window
+window = pygame.display.set_mode((width, height))                                               # create window
+clock = pygame.time.Clock()                                                                     # set clock
+
+tile = 50                                                                                       # tile size
+tick_speed = 20                                                                                 # set tick speed
+color = (64, 64, 64)                                                                            # set tile color
+cell_amount_x = width // tile                                                                   # amount of cells on x-axis
+cell_amount_y = height // tile                                                                  # amount of cells on y-axis
+cell_value = 0
+running = True                                                                                  # activate "while running" loop
+pause = True                                                                                    # activate "while pause" loop
+break_outofloop = False
+
+matrix = []
+for i in range(cell_amount_y):
+    matrix.append([])
+    for j in range(cell_amount_x):
+        matrix[-1].append(0)
+
+print(matrix)
+
+
+class Cell:                                                                                     # create a class for cells
+    def __init__(self):
+        self.clicked = False                                                                    # define function "clicked"
+
+
+board = [[Cell() for _ in range(cell_amount_x)] for _ in range(cell_amount_y)]                  # create board
+
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:                                                           # if window closed
+            running = False                                                                     # stop running the game
+            print("The game has stopped")
+
+        if event.type == pygame.MOUSEBUTTONDOWN:                                            # if mouse is clicked
+            row = event.pos[1] // tile                                                      # identify which row
+            col = event.pos[0] // tile                                                      # identify which column
+            if event.button == 1 and not board[row][col].clicked:                           # if clicked cell hasn't been clicked before
+                color = (164, 164, 164)                                                     # change the color
+                board[row][col].clicked = True                                              # change the clicked state
+                matrix[row][col] = 1
+            elif event.button == 1 and board[row][col].clicked:                             # if clicked cell has been clicked before
+                color = (64, 64, 64)                                                        # change the color
+                board[row][col].clicked = False                                             # change the clicked state
+                matrix[row][col] = 0
+
+            print(matrix)
+
+    window.fill(0)                                                                              # set background color to black
+
+    for iy, rowOfCells in enumerate(board):                                                     # for every y value in board
+        for ix, cell in enumerate(rowOfCells):                                                  # for every x value in row
+            color = (64, 64, 64) if cell.clicked else (164, 164, 164)
+            pygame.draw.rect(window, color, (ix * tile + 1, iy * tile + 1, tile - 2, tile - 2)) # draw a square the size of the tile
+
+    pygame.display.flip()
+
+    while pause:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:                                                    # if a key is pressed
+                # if event.key == pygame.K_p:                                                     # if key pressed is p
+                #     print("Timer paused.")
+                #     pause = False                                                               # go out of "while pause" loop
+                if event.key == pygame.K_r:                                                   # if key pressed is r
+                    print("Timer resumed.")
+                    pause = False                                                                # keep going through "while pause" loop
+            else:
+                break_outofloop = True
+                break  # go out of "while pause" loop
+        if break_outofloop:
+            break_outofloop = False
+            break
+
+    while not pause:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:  # if a key is pressed
+                if event.key == pygame.K_p:  # if key pressed is p
+                    print("Timer paused.")
+                    pause = True
+            else:
+                break_outofloop = True
+                break  # go out of "while pause" loop
+        for y in range(cell_amount_y):
+            for x in range(cell_amount_x):
+                a = matrix[x][y + 1]
+                print(a)
+                b = matrix[x + 1][y + 1]
+                c = matrix[x - 1][y + 1]
+                d = matrix[x + 1][y]
+                e = matrix[x - 1][y]
+                f = matrix[x][y - 1]
+                g = matrix[x + 1][y - 1]
+                h = matrix[x - 1][y - 1]
+                cell_amount_alive = a + b + c + d + e + f + g + h
+                if cell.clicked:
+                    if cell_amount_alive != 2 and cell_amount_alive != 3:
+                        board[row][col].clicked = False
+                        color = (64, 64, 64)
+                    else:
+                        board[row][col].clicked = True
+                        color = (164, 164, 164)
+                if not cell.clicked:
+                    if cell_amount_alive == 3:
+                        board[row][col].clicked = True
+                        color = (164, 164, 164)
+                    else:
+                        board[row][col].clicked = False
+                        color = (64, 64, 64)
+
+        #TODO: rules, list met alle cellen met 1 en 0, list in matrix maken (numpy), for x in range(cell_amountx), for y in range(cell_amounty), matrix[x-1][y-1]
+
+        if break_outofloop:
+            break_outofloop = False
+            break
+
+                # elif event.key == pygame.K_r:  # if key pressed is r
+                #     print("Timer resumed.")
+                #     pause = True
+
+    clock.tick(tick_speed)
+
+pygame.quit()
+exit()
