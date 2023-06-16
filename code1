@@ -1,0 +1,90 @@
+import tkinter as tk
+
+GRID_SIZE = 20
+CELL_SIZE = 30
+
+# Create the Tkinter window
+window = tk.Tk()
+window.title("Conway's Game of Life")
+
+# Calculate the canvas size based on the grid size and cell size
+canvas_width = GRID_SIZE * CELL_SIZE
+canvas_height = GRID_SIZE * CELL_SIZE
+
+# Create the canvas to display the grid
+canvas = tk.Canvas(window, width=canvas_width, height=canvas_height, bg="light blue")
+canvas.pack()
+
+# Set up a 2D grid to store the active cells
+active_cells = [[0] * GRID_SIZE for _ in range(GRID_SIZE)]
+
+# Variable to track the game's state
+is_paused = False
+
+def draw_grid():
+    canvas.delete("all")
+    if any(any(row) for row in active_cells):
+        for row in range(GRID_SIZE):
+            for col in range(GRID_SIZE):
+                if active_cells[row][col] == 1:
+                    x1 = col * CELL_SIZE
+                    y1 = row * CELL_SIZE
+                    x2 = x1 + CELL_SIZE
+                    y2 = y1 + CELL_SIZE
+                    canvas.create_rectangle(x1, y1, x2, y2, fill="white", outline="gray")
+                    if (row, col) in active_cells:
+                        canvas.create_rectangle(x1 + 1, y1 + 1, x2 - 1, y2 - 1, fill="black")
+    else:
+        canvas.create_text(canvas_width / 2, canvas_height / 2, text="Game Over", font=("Arial", 24), fill="red")
+
+def apply_rules():
+    new_active_cells = [[0] * GRID_SIZE for _ in range(GRID_SIZE)]
+    for row in range(GRID_SIZE):
+        for col in range(GRID_SIZE):
+            count = count_neighbors(row, col)
+            if count == 3 or (count == 2 and active_cells[row][col] == 1):
+                new_active_cells[row][col] = 1
+    return new_active_cells
+
+def count_neighbors(row, col):
+    count = 0
+    for i in [-1, 0, 1]:
+        for j in [-1, 0, 1]:
+            if i == 0 and j == 0:
+                continue
+            neighbor_row = (row + i) % GRID_SIZE
+            neighbor_col = (col + j) % GRID_SIZE
+            count += active_cells[neighbor_row][neighbor_col]
+    return count
+
+def update_game():
+    if not is_paused:
+        global active_cells
+        active_cells = apply_rules()
+    draw_grid()
+    window.after(1000, update_game)  # Repeat the update every 100 milliseconds
+
+def toggle_pause():
+    global is_paused
+    is_paused = not is_paused
+
+def handle_mouse_click(event):
+    if not is_paused:
+        return  # Ignore mouse clicks if the game is not paused
+    col = event.x // CELL_SIZE
+    row = event.y // CELL_SIZE
+    if active_cells[row][col] == 1:
+        active_cells[row][col] = 0
+    else:
+        active_cells[row][col] = 1
+    draw_grid()
+
+# Bind the spacebar key to toggle pause
+window.bind("<space>", lambda event: toggle_pause())
+
+# Bind the left mouse button click to handle cell state changes
+canvas.bind("<Button-1>", handle_mouse_click)
+
+# Start the game
+update_game()
+window.mainloop()
