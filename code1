@@ -1,90 +1,90 @@
 import tkinter as tk
 
-GRID_SIZE = 20
-CELL_SIZE = 30
+grid_size = 20                                                                          # how many cells per side
+cell = 30                                                                               # cell size in pixels
 
-# Create the Tkinter window
-window = tk.Tk()
-window.title("Conway's Game of Life")
+window = tk.Tk()                                                                        # initiate window
+window.title("Conway's Game of Life")                                                   # name of the window
 
-# Calculate the canvas size based on the grid size and cell size
-canvas_width = GRID_SIZE * CELL_SIZE
-canvas_height = GRID_SIZE * CELL_SIZE
+canvas_width = grid_size * cell                                                         # width of window in pixels
+canvas_height = grid_size * cell                                                        # height of window in pixels
 
-# Create the canvas to display the grid
-canvas = tk.Canvas(window, width=canvas_width, height=canvas_height, bg="light blue")
-canvas.pack()
+board = tk.Canvas(window, width=canvas_width, height=canvas_height, bg="light blue")    # create window with parameters
+board.pack()
 
-# Set up a 2D grid to store the active cells
-active_cells = [[0] * GRID_SIZE for _ in range(GRID_SIZE)]
+active_cells = [[0] * grid_size for _ in range(grid_size)]                  # create a list to store data of cells
 
-# Variable to track the game's state
-is_paused = False
+pause = False                                                                           # define state of game
 
-def draw_grid():
-    canvas.delete("all")
-    if any(any(row) for row in active_cells):
-        for row in range(GRID_SIZE):
-            for col in range(GRID_SIZE):
-                if active_cells[row][col] == 1:
-                    x1 = col * CELL_SIZE
-                    y1 = row * CELL_SIZE
-                    x2 = x1 + CELL_SIZE
-                    y2 = y1 + CELL_SIZE
-                    canvas.create_rectangle(x1, y1, x2, y2, fill="white", outline="gray")
-                    if (row, col) in active_cells:
-                        canvas.create_rectangle(x1 + 1, y1 + 1, x2 - 1, y2 - 1, fill="black")
-    else:
-        canvas.create_text(canvas_width / 2, canvas_height / 2, text="Game Over", font=("Arial", 24), fill="red")
 
-def apply_rules():
-    new_active_cells = [[0] * GRID_SIZE for _ in range(GRID_SIZE)]
-    for row in range(GRID_SIZE):
-        for col in range(GRID_SIZE):
-            count = count_neighbors(row, col)
-            if count == 3 or (count == 2 and active_cells[row][col] == 1):
-                new_active_cells[row][col] = 1
-    return new_active_cells
+def draw_grid():                                                                        # function to draw grid
+    board.delete("all")
+    if any(any(row) for row in active_cells):                               # check if there is an active cell in list
+        for row in range(grid_size):                                                    # for every row
+            for col in range(grid_size):                                                # for every column
+                if active_cells[row][col] == 1:                                         # if value of cell is 1
+                    x1 = col * cell                                                     # define begin (x, y) values
+                    y1 = row * cell
+                    x2 = x1 + cell                                                      # define end (x, y) values
+                    y2 = y1 + cell
+                    board.create_rectangle(x1, y1, x2, y2, fill="white", outline="gray")    # draw cells
+                    if (row, col) in active_cells:                          # for every row and column in grid
+                        board.create_rectangle(x1 + 1, y1 + 1, x2 - 1, y2 - 1, fill="black")    # draw rectangle
+    else:                                                                   # if there is no active cell in list
+        # create endgame screen
+        board.create_text(canvas_width / 2, canvas_height / 2, text="Game Over", font=("Arial", 24), fill="black")
 
-def count_neighbors(row, col):
-    count = 0
+
+def apply_rules():                                                                      # function for rules
+    new_active_cells = [[0] * grid_size for _ in range(grid_size)]                      # create grid with cell values
+    for row in range(grid_size):                                                        # for every row in grid
+        for col in range(grid_size):                                                    # for every column in grid
+            count = count_neighbours(row, col)                                           # define count
+            if count == 3 or (count == 2 and active_cells[row][col] == 1):  # if count = 3 or (2 and value of cell is 1)
+                new_active_cells[row][col] = 1                                          # value of cell is 1
+    return new_active_cells                                                             # return all new values
+
+
+def count_neighbours(row, col):                                                         # fucntion for neighbours
+    count = 0                                                                           # define count number
     for i in [-1, 0, 1]:
         for j in [-1, 0, 1]:
-            if i == 0 and j == 0:
-                continue
-            neighbor_row = (row + i) % GRID_SIZE
-            neighbor_col = (col + j) % GRID_SIZE
-            count += active_cells[neighbor_row][neighbor_col]
+            if i == 0 and j == 0:                                                       # if both 0
+                continue                                                                # skip
+            neighbour_row = (row + i) % grid_size
+            neighbour_col = (col + j) % grid_size
+            count += active_cells[neighbour_row][neighbour_col]                         # update count
     return count
 
+
 def update_game():
-    if not is_paused:
+    if not pause:
         global active_cells
-        active_cells = apply_rules()
-    draw_grid()
-    window.after(1000, update_game)  # Repeat the update every 100 milliseconds
+        active_cells = apply_rules()                                                    # apply rules to cells
+    draw_grid()                                                                         # draw grid
+    window.after(500, update_game)
+
 
 def toggle_pause():
-    global is_paused
-    is_paused = not is_paused
+    global pause
+    pause = not pause
 
-def handle_mouse_click(event):
-    if not is_paused:
-        return  # Ignore mouse clicks if the game is not paused
-    col = event.x // CELL_SIZE
-    row = event.y // CELL_SIZE
-    if active_cells[row][col] == 1:
-        active_cells[row][col] = 0
+
+def mouse_input(event):
+    if not pause:
+        return                                                              # Ignore mouse clicks if game is not paused
+    col = event.x // cell                                                   # use mouse pos to define column
+    row = event.y // cell                                                   # use mouse pos to define row
+    if active_cells[row][col] == 1:                                         # if value is 1
+        active_cells[row][col] = 0                                          # change to 0
     else:
-        active_cells[row][col] = 1
+        active_cells[row][col] = 1                                          # change to 1
     draw_grid()
 
-# Bind the spacebar key to toggle pause
-window.bind("<space>", lambda event: toggle_pause())
 
-# Bind the left mouse button click to handle cell state changes
-canvas.bind("<Button-1>", handle_mouse_click)
+window.bind("<space>", lambda event: toggle_pause())                        # bind space to pause
 
-# Start the game
-update_game()
+board.bind("<Button-1>", mouse_input)                                       # bins button 1 to mouse click
+
+update_game()                                                               # start game
 window.mainloop()
